@@ -1,0 +1,120 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation template for disaster recovery for AWS IoT. Amazon IoT health check.",
+    "Resources": {
+        "CreateLambdaR53CheckerRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    "CreateLambdaR53CheckerPolicy",
+                                    {
+                                        "Ref": "AWS::Region"
+                                    }
+                                ]
+                            ]
+                        },
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "xray:PutTraceSegments",
+                                        "xray:PutTelemetryRecords"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iot:AttachPolicy",
+                                        "iot:AttachPrincipalPolicy",
+                                        "iot:AttachThingPrincipal",
+                                        "iot:CreateKeysAndCertificate",
+                                        "iot:CreatePolicy",
+                                        "iot:CreateThing",
+                                        "iot:DescribeEndpoint",
+                                        "iot:DescribeThing",
+                                        "iot:DetachPolicy",
+                                        "iot:DetachThingPrincipal",
+                                        "iot:GetPolicy",
+                                        "iot:ListAttachedPolicies",
+                                        "iot:ListPolicyPrincipals",
+                                        "iot:ListPrincipalPolicies",
+                                        "iot:ListPrincipalThings",
+                                        "iot:ListTargetsForPolicy",
+                                        "iot:ListThingGroupsForThing",
+                                        "iot:ListThingPrincipals"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": [
+                                            "arn:aws:s3:::${Bucket}/*",
+                                            {
+                                                "Bucket": "S3BucketForLambda"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "Path": "/service-role/",
+                "Tags": [
+                    {
+                        "Key": "Solution",
+                        "Value": "IoTHealthChecker"
+                    }
+                ]
+            },
+            "Metadata": {
+                "cfn_nag": {
+                    "rules_to_suppress": [
+                        {
+                            "id": "W11",
+                            "reason": "Not all API do support resource level based permissions"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

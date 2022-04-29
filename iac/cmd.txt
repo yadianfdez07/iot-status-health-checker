@@ -1,0 +1,5 @@
+aws cloudformation deploy --template-file cfn-template.json --stack-name iot-health-checker-stack --parameter-overrides Key1=Value1 Key2=Value2 --tags Key1=Value1 Key2=Value2
+
+aws cloudformation deploy --template-file cfn-template.json --stack-name iot-health-checker-stack --region us-east-1 --capabilities CAPABILITY_IAM
+
+aws cloudformation delete-stack --stack-name iot-health-checker-stack
