@@ -2,7 +2,7 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "AWS CloudFormation template for disaster recovery for AWS IoT. Amazon IoT health check.",
     "Resources": {
-        "CreateLambdaR53CheckerRole": {
+        "CreateLambdaIoTHealthCheckerRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
                 "AssumeRolePolicyDocument": {
@@ -114,6 +114,50 @@
                         }
                     ]
                 }
+            }
+        },
+        "CustomCreateIoTHealthCheckerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Metadata": {
+                "cfn_nag": {
+                    "rules_to_suppress": [
+                        {
+                            "id": "W89",
+                            "reason": "Lambda function needs access to public endpoints."
+                        },
+                        {
+                            "id": "W92",
+                            "reason": "Setting reserved concurrency might make the stack creation to fail or might jeopardize customer settings"
+                        }
+                    ]
+                }
+            },
+            "Properties": {
+                "FunctionName": "HealthCheckerBuilder",
+                "Handler": "HealthCheckerBuilder::HealthCheckerBuilder.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "CreateLambdaIoTHealthCheckerRole",
+                        "Arn"
+                    ]
+                },
+                "Code": "./dotnetPackaged/HealthCheckerBuilder.zip",
+                "Runtime": "dotnetcore3.1",
+                "MemorySize": 256,
+                "Timeout": 30,
+                "TracingConfig": {
+                    "Mode": "Active"
+                },
+                "Tags": [
+                    {
+                        "Key": "CloudFormation",
+                        "Value": "CustomResource "
+                    },
+                    {
+                        "Key": "Solution",
+                        "Value": "IoTHealthCheckBuilder "
+                    }
+                ]
             }
         }
     }
