@@ -2,11 +2,11 @@ aws cloudformation deploy --template-file cfn-template.json --stack-name iot-hea
 
 aws cloudformation deploy --template-file cfn-template.json --stack-name iot-health-checker-stack --region us-east-1 --capabilities CAPABILITY_IAM
 
-aws cloudformation deploy --template-file .\iac\packaged-template.json --stack-name iot-health-checker-stack --region us-east-1 --capabilities CAPABILITY_IAM
-
 dotnet-lambda package -f netcoreapp3.1 -pl .\src\HealthCheckerBuilder -o .\iac\dotnetPackaged\HealthCheckerBuilder.zip
 
 aws cloudformation package --template-file .\iac\cfn-template.json --s3-bucket oligo-resources --output-template-file .\iac\packaged-template.json --use-json
+
+aws cloudformation deploy --template-file .\iac\packaged-template.json --stack-name iot-health-checker-stack --region us-east-1 --capabilities CAPABILITY_IAM
 
 aws cloudformation delete-stack --stack-name iot-health-checker-stack
 

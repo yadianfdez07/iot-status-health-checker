@@ -1,4 +1,7 @@
 using Amazon.Lambda.Core;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -14,9 +17,82 @@ namespace HealthCheckerBuilder
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public string FunctionHandler(string input, ILambdaContext context)
+        public async Task FunctionHandler(CloudFormationRequest<IotThingConfig> input, ILambdaContext context)
         {
-            return input.ToUpper();
+            LambdaLogger.Log("ENVIRONMENT VARIABLES: " + JsonConvert.SerializeObject(System.Environment.GetEnvironmentVariables()));
+            LambdaLogger.Log("CONTEXT: " + JsonConvert.SerializeObject(context));
+            LambdaLogger.Log("INPUT: " + JsonConvert.SerializeObject(input));
+            var policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iot:Connect\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"*\"],\"Resource\":[\"*\"]},{\"Effect\":\"Allow\",\"Action\":[\"iot:Receive\"],\"Resource\":[\"*\"]},{\"Effect\":\"Allow\",\"Action\":[\"iot:Subscribe\"],\"Resource\":[\"*\"]}]}";
+
+            if (input.RequestType.ToLower().Equals("create"))
+            {
+                var thingCreator = new ThingCreator();
+
+                var thingResponse = thingCreator.CreateThing(input.ResourceProperties.REGION, input.ResourceProperties.THING_NAME);
+
+                var certificateResponse = thingCreator.CreateCertificate(input.ResourceProperties.REGION, input.ResourceProperties.THING_NAME, policy, thingResponse);
+
+                var response = new CloudFormationResponse
+                {
+                    Status = "SUCCESS",
+                    Reason = "Is a create request",
+                    PhysicalResourceId = $"{input.ResourceProperties.THING_NAME}",
+                    StackId = input.StackId,
+                    RequestId = input.RequestId,
+                    LogicalResourceId = input.LogicalResourceId,
+                    Data = certificateResponse.CertificateArn // must be object???
+                };
+
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(response));
+
+                LambdaLogger.Log("RESPONSE: " + JsonConvert.SerializeObject(response));
+
+                jsonContent.Headers.Remove("Content-Type");
+
+                using (var client = new HttpClient())
+                {
+                    var postResponse = await client.PutAsync(input.ResponseURL, jsonContent);
+                    postResponse.EnsureSuccessStatusCode();
+                }
+
+            }
+            else
+            {
+
+                var response = new CloudFormationResponse
+                {
+                    Status = "SUCCESS",
+                    Reason = "Is not a create request",
+                    PhysicalResourceId = $"{input.ResourceProperties.THING_NAME}",
+                    StackId = input.StackId,
+                    RequestId = input.RequestId,
+                    LogicalResourceId = input.LogicalResourceId,
+                };
+
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(response));
+
+                LambdaLogger.Log("RESPONSE: " + JsonConvert.SerializeObject(response));
+
+                jsonContent.Headers.Remove("Content-Type");
+
+                using (var client = new HttpClient())
+                {
+                    var postResponse = await client.PutAsync(input.ResponseURL, jsonContent);
+                    postResponse.EnsureSuccessStatusCode();
+                }
+
+            }
         }
+    }
+
+    public class CloudFormationResponse
+    {
+        public string Status { get; set; }
+        public string Reason { get; set; }
+        public string PhysicalResourceId { get; set; }
+        public string StackId { get; set; }
+        public string RequestId { get; set; }
+        public string LogicalResourceId { get; set; }
+        public string Data { get; set; }
     }
 }

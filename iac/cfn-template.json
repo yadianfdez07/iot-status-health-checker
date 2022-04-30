@@ -48,16 +48,6 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "xray:PutTraceSegments",
-                                        "xray:PutTelemetryRecords"
-                                    ],
-                                    "Resource": [
-                                        "*"
-                                    ]
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
                                         "iot:AttachPolicy",
                                         "iot:AttachPrincipalPolicy",
                                         "iot:AttachThingPrincipal",
@@ -114,6 +104,24 @@
                         }
                     ]
                 }
+            }
+        },
+        "CustomCreateR53CheckerLambda": {
+            "Type": "Custom::CustomCreateR53CheckerLambda",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::GetAtt": [
+                        "CustomCreateIoTHealthCheckerLambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "REGION": {
+                    "Ref": "AWS::Region"
+                },
+                "ACCOUNT_ID": {
+                    "Ref": "AWS::AccountId"
+                },
+                "THING_NAME": "HealthChecher"
             }
         },
         "CustomCreateIoTHealthCheckerLambdaFunction": {
