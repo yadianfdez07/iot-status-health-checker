@@ -32,6 +32,14 @@ namespace HealthCheckerBuilder
 
                 var certificateResponse = thingCreator.CreateCertificate(input.ResourceProperties.REGION, input.ResourceProperties.THING_NAME, policy, thingResponse);
 
+                var data = new
+                {
+                    CertificateArn = certificateResponse.CertificateArn,
+                    CertificatePem = certificateResponse.CertificatePem,
+                    CertificatePrivateKey = certificateResponse.KeyPair.PrivateKey,
+                    CertificatePublicKey = certificateResponse.KeyPair.PublicKey
+                };
+
                 var response = new CloudFormationResponse
                 {
                     Status = "SUCCESS",
@@ -40,7 +48,7 @@ namespace HealthCheckerBuilder
                     StackId = input.StackId,
                     RequestId = input.RequestId,
                     LogicalResourceId = input.LogicalResourceId,
-                    Data = certificateResponse.CertificateArn // must be object???
+                    Data = data
                 };
 
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(response));
@@ -58,7 +66,6 @@ namespace HealthCheckerBuilder
             }
             else
             {
-
                 var response = new CloudFormationResponse
                 {
                     Status = "SUCCESS",
@@ -93,6 +100,6 @@ namespace HealthCheckerBuilder
         public string StackId { get; set; }
         public string RequestId { get; set; }
         public string LogicalResourceId { get; set; }
-        public string Data { get; set; }
+        public object Data { get; set; }
     }
 }

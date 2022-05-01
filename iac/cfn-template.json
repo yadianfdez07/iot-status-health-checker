@@ -168,5 +168,39 @@
                 ]
             }
         }
+    },
+    "Outputs": {
+        "CertificateArnOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CustomCreateR53CheckerLambda",
+                    "CertificateArn"
+                ]
+            }
+        },
+        "CertificatePemOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CustomCreateR53CheckerLambda",
+                    "CertificatePem"
+                ]
+            }
+        },
+        "CertificatePrivateKeyOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CustomCreateR53CheckerLambda",
+                    "CertificatePrivateKey"
+                ]
+            }
+        },
+        "CertificatePublicKeyOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CustomCreateR53CheckerLambda",
+                    "CertificatePublicKey"
+                ]
+            }
+        }
     }
 }
