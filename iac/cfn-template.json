@@ -121,7 +121,7 @@
                 "ACCOUNT_ID": {
                     "Ref": "AWS::AccountId"
                 },
-                "THING_NAME": "HealthChecher"
+                "THING_NAME": "HealthChecker"
             }
         },
         "CustomCreateIoTHealthCheckerLambdaFunction": {
